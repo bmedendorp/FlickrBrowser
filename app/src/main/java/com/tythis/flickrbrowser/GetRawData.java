@@ -16,14 +16,24 @@ class GetRawData extends AsyncTask<String, Void, String> {
     private static final String TAG = "GetRawData";
     
     private DownloadStatus mDownloadStatus;
+    private final OnDownloadComplete mCallback;
 
-    public GetRawData() {
+    interface OnDownloadComplete {
+        void onDownloadComplete(String data, DownloadStatus status);
+    }
+
+    public GetRawData(OnDownloadComplete callback) {
         this.mDownloadStatus = DownloadStatus.IDLE;
+        this.mCallback = callback;
     }
 
     @Override
     protected void onPostExecute(String s) {
         Log.d(TAG, "onPostExecute: parameter = " + s);
+        if (mCallback != null) {
+            mCallback.onDownloadComplete(s, mDownloadStatus);
+        }
+        Log.d(TAG, "onPostExecute: ends");
     }
 
     @Override
@@ -60,11 +70,11 @@ class GetRawData extends AsyncTask<String, Void, String> {
             return result.toString();
 
         } catch(MalformedURLException e) {
-            Log.e(TAG, "doInBackground: Invalid URL" + e.getMessage());
+            Log.e(TAG, "doInBackground: Invalid URL " + e.getMessage());
         } catch(IOException e) {
-            Log.e(TAG, "doInBackground: IO Exception reading data" + e.getMessage());
+            Log.e(TAG, "doInBackground: IO Exception reading data " + e.getMessage());
         } catch(SecurityException e) {
-            Log.e(TAG, "doInBackground: Security Exception. Needs permission?" + e.getMessage());
+            Log.e(TAG, "doInBackground: Security Exception. Needs permission? " + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -73,7 +83,7 @@ class GetRawData extends AsyncTask<String, Void, String> {
                 try {
                     reader.close();
                 } catch(IOException e) {
-                    Log.e(TAG, "doInBackground: Error closing stream" + e.getMessage());
+                    Log.e(TAG, "doInBackground: Error closing stream " + e.getMessage());
                 }
             }
         }
